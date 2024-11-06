@@ -5,7 +5,6 @@ for i, experiment in enumerate(experiments):
     print(
         f"\nRunning Experiment {i+1} with {experiment['acceleration_pattern']} acceleration pattern")
     run_experiment(
-        num_steps=experiment["num_steps"],
         T=experiment["T"],
         acceleration_pattern=experiment["acceleration_pattern"],
         measurement_noise_cov=experiment["measurement_noise_cov"],

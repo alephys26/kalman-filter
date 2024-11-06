@@ -1,12 +1,12 @@
 import numpy as np
 import os
-from config import initial_position, initial_velocity, delta_t
+from config import initial_position, initial_velocity, delta_t, num_steps
 from kalman_filter import KalmanFilter
 from simulation import true_movement, get_noisy_measurement
 from visualization import plot_positions, plot_errors
 
 
-def get_acceleration_pattern(pattern, step, num_steps):
+def get_acceleration_pattern(pattern, step):
     if pattern == "constant":
         return np.array([0.1, 0.0, 0.05])
 
@@ -72,12 +72,13 @@ def save_experiment_output(experiment_name, true_positions, estimated_positions,
         f.write(f"Final error: {errors[-1]}\n")
 
 
-def run_experiment(num_steps, T, acceleration_pattern, measurement_noise_cov, experiment_name):
+def run_experiment(T, acceleration_pattern, measurement_noise_cov, experiment_name):
     initial_state = np.hstack((initial_position, initial_velocity))
     kalman_filter = KalmanFilter(initial_state)
 
-    global R
+    global R, Q
     R = measurement_noise_cov
+    Q = R
 
     true_states = [initial_state]
     estimated_states = [initial_state]
@@ -85,7 +86,7 @@ def run_experiment(num_steps, T, acceleration_pattern, measurement_noise_cov, ex
 
     for step in range(1, num_steps + 1):
         acceleration = get_acceleration_pattern(
-            acceleration_pattern, step, num_steps)
+            acceleration_pattern, step)
 
         true_state = true_movement(true_states[-1], acceleration)
         true_states.append(true_state)
@@ -112,41 +113,32 @@ def run_experiment(num_steps, T, acceleration_pattern, measurement_noise_cov, ex
     plot_errors(errors, experiment_name)
 
 
-experiments = [
-    {
-        "num_steps": 50,
-        "T": 0.1,
-        "acceleration_pattern": "constant",
-        "measurement_noise_cov": 0.1 * np.eye(6)
-    },
-    {
-        "num_steps": 50,
-        "T": 0.05,
-        "acceleration_pattern": "sinusoidal",
-        "measurement_noise_cov": 0.2 * np.eye(6)
-    },
-    {
-        "num_steps": 50,
-        "T": 0.1,
-        "acceleration_pattern": "exponential_increase",
-        "measurement_noise_cov": 0.15 * np.eye(6)
-    },
-    {
-        "num_steps": 50,
-        "T": 0.1,
-        "acceleration_pattern": "exponential_decrease",
-        "measurement_noise_cov": 0.1 * np.eye(6)
-    },
-    {
-        "num_steps": 50,
-        "T": 0.2,
-        "acceleration_pattern": "random",
-        "measurement_noise_cov": np.diag([0.3, 0.3, 0.3, 0.15, 0.15, 0.15])
-    },
-    {
-        "num_steps": 50,
-        "T": 0.1,
-        "acceleration_pattern": "piecewise",
-        "measurement_noise_cov": np.diag([0.25, 0.25, 0.25, 0.1, 0.1, 0.1])
-    }
+T_values = [0.1, 0.2, 0.3]
+
+acceleration_patterns = [
+    "constant",
+    "sinusoidal",
+    "exponential_increase",
+    "exponential_decrease",
+    "random",
+    "piecewise",
+    "variable"
 ]
+
+covariance_matrices = [
+    0.1 * np.eye(6),
+    0.15 * np.eye(6),
+    0.2 * np.eye(6)
+]
+
+experiments = []
+
+for T in T_values:
+    for acceleration_pattern in acceleration_patterns:
+        for measurement_noise_cov in covariance_matrices:
+            experiment = {
+                "T": T,
+                "acceleration_pattern": acceleration_pattern,
+                "measurement_noise_cov": measurement_noise_cov
+            }
+            experiments.append(experiment)

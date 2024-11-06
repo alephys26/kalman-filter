@@ -1,3 +1,0 @@
-Experiment Summary for experiment_3_exponential_increase:
-Number of steps: 50
-Final error: 0.0

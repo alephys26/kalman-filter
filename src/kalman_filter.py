@@ -13,8 +13,10 @@ class KalmanFilter:
         return self.state
 
     def update(self, measurement):
-        S = H @ self.P @ H.T + R
-        K = self.P @ H.T @ np.linalg.inv(S)
-        self.state = self.state + K @ (measurement - H @ self.state)
-        self.P = (np.eye(6) - K @ H) @ self.P
+        self.y = measurement - H @ self.state
+        self.S = H @ self.P @ H.T + R
+        self.K = self.P @ H.T @ np.linalg.inv(self.S)
+        self.state = self.state + self.K @ self.y
+        self.P = (np.eye(6) - self.K @ H) @ self.P
+        self.y = measurement - H @ self.state
         return self.state
